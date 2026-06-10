@@ -1,19 +1,19 @@
 # Impacto del Preprocesamiento de Imágenes en el Desempeño de una CNN para Clasificación Botánica
 
-Este proyecto analiza y evalúa el impacto de aplicar una técnica avanzada de preprocesamiento de imágenes —basada en la proyección HCL (Máximo Contraste), umbralización de Otsu y refinamiento morfológico— sobre el rendimiento de una Red Neuronal Convolucional (CNN) entrenada para clasificar 5 tipos de flores del dataset [Flowers Recognition](https://www.kaggle.com/datasets/alxmamaev/flowers-recognition) (daisy, dandelion, rose, sunflower, tulip).
+Este proyecto analiza y evalúa el impacto de aplicar una técnica de preprocesamiento de imágenes —basada en la proyección HCL (Máximo Contraste), umbralización de Otsu y refinamiento morfológico— sobre el rendimiento de una CNN entrenada para clasificar 5 tipos de flores del dataset [Flowers Recognition](https://www.kaggle.com/datasets/alxmamaev/flowers-recognition) (daisy, dandelion, rose, sunflower, tulip).
 
 ---
 
 ## Propuesta de Preprocesamiento
 
-El objetivo de nuestra propuesta es **aislar el objeto de interés (la flor) y eliminar el ruido de fondo (hierba, tierra, hojas u otras flores)**, permitiendo que la CNN concentre su aprendizaje exclusivamente en las características morfológicas, texturas y colores del espécimen y no en patrones contextuales del fondo.
+El objetivo de nuestra propuesta es **aislar el objeto de interés (la flor) y eliminar el ruido de fondo (hierba, tierra, hojas u otras flores)**, permitiendo que la CNN concentre su aprendizaje exclusivamente en las características de la flor y no en los patrones contextuales del fondo.
 
 El flujo de preprocesamiento aplicado a cada imagen consiste en:
 
 1. **Filtro de Mediana (`cv2.medianBlur` de 3x3):** Suavizado inicial para eliminar ruido de tipo "sal y pimienta" sin difuminar los bordes de la flor.
 2. **Proyección HCL a Escala de Grises de Máximo Contraste (HCM):** 
-   - Proyecta la imagen RGB mediante una combinación lineal optimizada $I = w_1 R + w_2 G + w_3 B$.
-   - Los pesos óptimos se encuentran utilizando el algoritmo de Nelder-Mead (`scipy.optimize.minimize`) para maximizar la desviación estándar de la imagen en grises dividida por su rango (máximo contraste dinámico).
+   - Proyecta la imagen BGR mediante una combinación lineal optimizada $I = w_1 B + w_2 G + w_3 R$.
+   - Los pesos óptimos se encuentran utilizando el algoritmo de Nelder-Mead (`scipy.optimize.minimize`) para maximizar la desviación estándar de la imagen en grises dividida por su rango.
 3. **Umbralización Adaptativa de Otsu con Offset ($p = -0.2$):** 
    - Binariza la proyección HCM encontrando automáticamente el umbral óptimo a partir del histograma bimodal.
    - Se aplica un desplazamiento (offset) de $-0.2$ para asegurar que se conserven los bordes finos de los pétalos.
@@ -21,7 +21,7 @@ El flujo de preprocesamiento aplicado a cada imagen consiste en:
 5. **Limpieza Morfológica Avanzada (`skimage.morphology`):**
    - Eliminación de objetos aislados pequeños en el fondo con un umbral de área de 200 píxeles (`remove_small_objects`).
    - Relleno de huecos oscuros internos restantes con un umbral de área de 1000 píxeles (`remove_small_holes`).
-6. **Enmascaramiento Bitwise (`cv2.bitwise_and`):** Aplica la máscara binaria final sobre la imagen RGB original, resultando en la flor a color sobre un fondo negro absoluto.
+6. **Enmascaramiento Bitwise (`cv2.bitwise_and`):** Aplica la máscara binaria final sobre la imagen BGR original, resultando en la flor a color sobre un fondo negro absoluto.
 7. **Redimensionamiento (`cv2.resize`):** Ajusta las imágenes al tamaño requerido por la red convolucional ($150 \times 150$ píxeles).
 
 ---
@@ -30,9 +30,9 @@ El flujo de preprocesamiento aplicado a cada imagen consiste en:
 
 A continuación se presenta una comparativa de la imagen original frente a la procesada:
 
-| Imagen Original (RGB) | Máscara de Segmentación | Flor Segmentada (Fondo Negro) |
-| :---: | :---: | :---: |
-| ![Original](ruta/a/tu/imagen_original.jpg) | ![Máscara](ruta/a/tu/mascara.jpg) | ![Procesada](ruta/a/tu/imagen_procesada.jpg) |
+| Imagen Original  | Flor Segmentada (Fondo Negro) |
+| :---: | :---: |
+| ![Original](ruta/a/tu/imagen_original.jpg) | ![Procesada](ruta/a/tu/imagen_procesada.jpg) |
 
 *(Nota: Asegúrate de reemplazar las rutas anteriores con las imágenes reales de ejemplo en tu repositorio).*
 
@@ -40,8 +40,9 @@ A continuación se presenta una comparativa de la imagen original frente a la pr
 
 ## Estructura del Repositorio
 
-* `codigo_procesamiento.py`: Script de Python con el pipeline de preprocesamiento completo para aplicar a todo el dataset.
-* `cnn/proyecto_final_imágenes_rgb.py`: Notebook/Script con la arquitectura e instrucciones de entrenamiento de la CNN, modificado únicamente con la ruta del dataset procesado.
+* `codigo_procesamiento.ipynb`: Script de Python con el pipeline de preprocesamiento completo para aplicar a todo el dataset.
+* `cnn/proyecto_final_imágenes_rgb.`: Notebook/Script con la arquitectura e instrucciones de entrenamiento de la CNN, modificado únicamente con la ruta del dataset procesado.
+* `imagenes/`: Carpeta donde se muestran imagenes originales y procesadas
 * `README.md`: Este archivo explicativo de la metodología y resultados.
 
 ---
